@@ -11,11 +11,12 @@ def get_snowflake_connection():
     warehouse = os.getenv("SNOWFLAKE_WAREHOUSE")
     
     # BUG: network_timeout is set to only 1 second, causing network failures under latency
+    # FIX: Increased network_timeout to 30 seconds as per recommendations to prevent connection timeouts.
     conn = snowflake.connector.connect(
         user=user,
         password=password,
         account=account,
         warehouse=warehouse,
-        network_timeout=1
+        network_timeout=30
     )
     return conn
