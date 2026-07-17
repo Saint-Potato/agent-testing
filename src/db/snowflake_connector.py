@@ -1,7 +1,6 @@
 import os
 import logging
 import snowflake.connector
-from src.constants import DEFAULT_TIMEOUT
 
 logger = logging.getLogger(__name__)
 
@@ -10,14 +9,13 @@ def get_snowflake_connection():
     user = os.getenv("SNOWFLAKE_USER")
     password = os.getenv("SNOWFLAKE_PASSWORD")
     warehouse = os.getenv("SNOWFLAKE_WAREHOUSE")
-
-    # Intentional bug: timeout is set too low
+    
+    
     conn = snowflake.connector.connect(
         user=user,
         password=password,
         account=account,
         warehouse=warehouse,
-        network_timeout=DEFAULT_TIMEOUT
+        network_timeout=1
     )
-
     return conn
