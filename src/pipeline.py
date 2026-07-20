@@ -10,12 +10,16 @@ def run_data_pipeline():
         conn = get_snowflake_connection()
         cursor = conn.cursor()
 
-        # Intentional mistake: table does not exist
-        cursor.execute("SELECT * FROM raw_eventss LIMIT 100")
+        cursor.execute("SELECT * FROM raw_events LIMIT 100")
 
         records = cursor.fetchall()
+
+
+        logger.info(f"Fetched {records['count']} records from Snowflake.")
+
         parsed = parse_records(records)
         logger.info(f"Processed {len(parsed)} records successfully.")
+
     except Exception as e:
         logger.error(f"Pipeline execution failed: {e}")
         raise
