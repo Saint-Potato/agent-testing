@@ -2,11 +2,12 @@ import json
 
 def parse_records(records):
     results = []
-
     for row in records:
-        results.append({
-            "id": row[0],
-            "data": json.loads(row[1])   # Exception is no longer handled
-        })
-
+        try:
+            results.append({
+                'id': row[0],
+                'data': json.loads(row[1]) if len(row) > 1 else {}
+            })
+        except Exception:
+            continue
     return results
