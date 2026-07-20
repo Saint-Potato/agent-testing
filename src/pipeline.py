@@ -6,6 +6,8 @@ logger = logging.getLogger(__name__)
 
 def run_data_pipeline():
     logger.info("Starting pipeline run...")
+    conn = None
+    cursor = None
     try:
         conn = get_snowflake_connection()
         cursor = conn.cursor()
@@ -14,12 +16,23 @@ def run_data_pipeline():
 
         records = cursor.fetchall()
 
-
-        logger.info(f"Fetched {records['count']} records from Snowflake.")
+        # records is a list of tuples returned by fetchall(); use len() to get the count
+        logger.info(f"Fetched {len(records)} records from Snowflake.")
 
         parsed = parse_records(records)
         logger.info(f"Processed {len(parsed)} records successfully.")
 
     except Exception as e:
-        logger.error(f"Pipeline execution failed: {e}")
+        logger.error(f"Pipeline execution failed: {e}", exc_info=True)
         raise
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
