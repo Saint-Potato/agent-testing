@@ -1,15 +1,36 @@
-from src.db.snowflake_connector import get_snowflake_connection
-from src.utils import parse_records
+import time
 import logging
 
+from src.config import Config
+from src.db.snowflake_connector import get_snowflake_connection
+from src.utils import parse_records
+
 logger = logging.getLogger(__name__)
+
 
 def run_data_pipeline():
     logger.info("Starting pipeline run...")
     conn = None
     cursor = None
+    last_exc = None
+
+    for attempt in range(1, Config.MAX_RETRIES + 1):
+        try:
+            conn = get_snowflake_connection()
+            break
+        except Exception as e:
+            last_exc = e
+            wait = 2 ** attempt  # exponential backoff: 2s, 4s, 8s
+            logger.warning(
+                f"Snowflake connection attempt {attempt}/{Config.MAX_RETRIES} failed: {e}. "
+                f"Retrying in {wait}s..."
+            )
+            time.sleep(wait)
+    else:
+        logger.error("All Snowflake connection attempts exhausted.")
+        raise last_exc
+
     try:
-        conn = get_snowflake_connection()
         cursor = conn.cursor()
 
         cursor.execute("SELECT * FROM raw_events LIMIT 100")
